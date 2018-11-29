@@ -1,13 +1,18 @@
 package org.avro;
 
 import org.apache.avro.Schema;
-import org.apache.commons.io.Charsets;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.FileUtils;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Queue;
 
 public class NestedSchemas {
 
@@ -17,25 +22,23 @@ public class NestedSchemas {
 
     private static NestedSchemas nestedSchemas = new NestedSchemas();
 
-    private NestedSchemas(){}
+    private NestedSchemas() {
+    }
 
-    public static NestedSchemas getInstance(){
+    public static NestedSchemas getInstance() {
         return nestedSchemas;
     }
 
     public void load(String inputDirectory) throws IOException {
 
-        List<String> files = IOUtils.readLines(this.getClass().getResourceAsStream(inputDirectory), Charsets.UTF_8);
+        Files
+                .list(Paths.get(inputDirectory))
+                .filter(Files::isRegularFile)
+                .map(Path::toAbsolutePath)
+                .map(Path::toFile)
+                .map(this::convertFileToString)
+                .forEach(jsonFile -> waitingQueue.add(jsonFile));
 
-        files.stream().forEach(f -> {
-
-            String filePath = inputDirectory + "/" + f;
-
-            String json = fileToString(filePath);
-
-            waitingQueue.add(json);
-
-        });
     }
 
 
@@ -44,7 +47,7 @@ public class NestedSchemas {
         while (waitingQueue.size() != 0) {
             String item = waitingQueue.poll();
             try {
-                String completeSchema = resolveSchema(item);
+                String completeSchema = compileSchema(item);
                 Schema schema = new Schema.Parser().parse(completeSchema);
                 String name = schema.getFullName();
                 schemas.put(name, schema);
@@ -64,16 +67,17 @@ public class NestedSchemas {
     }
 
 
-    private String fileToString(String filePath) {
-
-        try (InputStream inputStream = this.getClass().getResourceAsStream(filePath)) {
-            return IOUtils.toString(inputStream);
+    private String convertFileToString (File file) {
+        String str = null;
+        try {
+            str = FileUtils.readFileToString(file, "UTF-8");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
+        return str;
     }
 
-    private String resolveSchema(String schema) {
+    private String compileSchema(String schema) {
 
         for (Map.Entry<String, Schema> entry : schemas.entrySet()) {
             schema = schema.replaceAll("\"" + entry.getKey() + "\"", entry.getValue().toString());

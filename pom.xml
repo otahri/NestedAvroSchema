@@ -12,7 +12,6 @@
     <properties>
         <avro.version>1.8.2</avro.version>
         <commons-io.version>2.4</commons-io.version>
-        <io.reactivex>2.2.0</io.reactivex>
     </properties>
 
     <dependencies>
@@ -38,6 +37,7 @@
                     <target>8</target>
                 </configuration>
             </plugin>
+
         </plugins>
     </build>
 
