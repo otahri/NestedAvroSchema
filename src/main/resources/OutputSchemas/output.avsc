@@ -1,0 +1,25 @@
+{
+  "type" : "record",
+  "name" : "Main",
+  "namespace" : "kafka101.mydev",
+  "fields" : [ {
+    "name" : "id",
+    "type" : "int"
+  }, {
+    "name" : "user",
+    "type" : {
+      "type" : "record",
+      "name" : "User",
+      "fields" : [ {
+        "name" : "nom",
+        "type" : "string"
+      }, {
+        "name" : "prenom",
+        "type" : "string"
+      }, {
+        "name" : "ville",
+        "type" : "string"
+      } ]
+    }
+  } ]
+}
